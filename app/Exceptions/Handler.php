@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -36,6 +38,30 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        /**
+         * If the model requested from the API does not exist or belong to the requesting user, return a generic response.
+         */
+        $this->renderable(function (NotFoundHttpException $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status' => "Error",
+                    'message' => "Invalid route ID"
+                ], 404);
+            }
+        });
+
+        /**
+         * Anytime an error slips through for the API, handle the error and show the exception message to admin user
+         */
+        $this->renderable(function (Exception $e, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status' => "Error",
+                    'message' => $e->getMessage() //"An unexpected error has occurred"
+                ], 400);
+            }
         });
     }
 }

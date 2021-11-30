@@ -18,7 +18,7 @@ class CreateTasksTable extends Migration
             $table->string('title');
             $table->string('description')->nullable();
             $table->integer('order_number')->default(1);
-            $table->timestamp('completed_at')->default(null);
+            $table->timestamp('completed_at')->nullable();
             $table->timestamp('due_at');
             $table->timestamps();
             $table->softDeletes();

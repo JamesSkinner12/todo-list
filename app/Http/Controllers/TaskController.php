@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
@@ -12,9 +13,9 @@ class TaskController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        return response()->json(Task::orderBy('order_number')->get()->toArray());
     }
 
     /**
@@ -25,7 +26,28 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|max:255',
+            'description' => 'max:500',
+            'order_number' => 'required|numeric',
+            'due_at' => 'required|date|after:today',
+        ]);
+
+        $task = Task::create($request->only([
+            'title',
+            'description',
+            'order_number',
+            'due_at'
+        ]));
+
+        Task::where('order_number', '>=', $request->input('order_number'))
+            ->where('id', '!=', $task->id)
+            ->increment('order_number');
+
+        return response()->json([
+            'status' => "Success",
+            'message' => $task
+        ]);
     }
 
     /**
@@ -36,7 +58,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        //
+        return response()->json($task);
     }
 
     /**
@@ -48,7 +70,33 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        //
+        $request->validate([
+            'title' => 'max:255',
+            'description' => 'max:500',
+            'order_number' => 'numeric',
+            'due_at' => 'date|after:today',
+            'completed_at' => 'date|after:due_at'
+        ]);
+
+        $task->update($request->only([
+            'title',
+            'description',
+            'order_number',
+            'due_at',
+            'completed_at'
+        ]));
+
+        if ($request->has('order_number')) {
+
+            Task::whereBetween('order_number', [$request->input('order_number'), $task->order_number])
+                ->where('id', '!=', $task->id)
+                ->increment('order_number');
+        }
+
+        return response()->json([
+            'status' => "Success",
+            'message' => $task
+        ]);
     }
 
     /**
@@ -59,7 +107,14 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        if ($task->delete()) {
+            Task::where('order_number', '>=', $task->order_number)
+            ->decrement('order_number');
+        }
+        return response()->json([
+            'status' => "Success",
+            'message' => "Task deleted successfully"
+        ]);
     }
 
     /**
@@ -70,6 +125,17 @@ class TaskController extends Controller
      */
     public function restore(Task $task)
     {
-        //
+        if ($task->trashed()) {
+
+            $task->restore();
+            $task->update([
+                'order_number' => Task::where('id', '!=', $task->id)->max('order_number') + 1
+            ]);
+        }
+
+        return response()->json([
+            'status' => "Success",
+            'message' => "Task restored successfully"
+        ]);
     }
 }
