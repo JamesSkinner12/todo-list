@@ -1,11 +1,12 @@
 <template>
   <div class="container">
-
-  <b-modal v-model="modalShow" title="Manage Task">
-      <task-form v-if="addNewTask === true || taskToEdit !== null" :task="taskToEdit" @saved="closeTaskForm"></task-form>
-  </b-modal>
-
-
+    <b-modal v-model="modalShow" title="Manage Task">
+      <task-form
+        v-if="addNewTask === true || taskToEdit !== null"
+        :task="taskToEdit"
+        @saved="closeTaskForm"
+      ></task-form>
+    </b-modal>
 
     <div class="row justify-content-center">
       <div class="col-md-8">
@@ -13,8 +14,13 @@
           <div class="card-header">
             Tasks
 
-            <b-button variant="primary" class="add-task-button" @click="addNewTask = true">
-              <b-icon icon="plus-circle-fill" variant="default"></b-icon> Add Task
+            <b-button
+              variant="primary"
+              class="add-task-button"
+              @click="addNewTask = true"
+            >
+              <b-icon icon="plus-circle-fill" variant="default"></b-icon> Add
+              Task
             </b-button>
           </div>
 
@@ -42,7 +48,12 @@
                       </p>
 
                       <small>{{ task.status }}</small>
-                      <b-button small variant="info" @click="taskToEdit = task">Edit</b-button>
+                      <b-button small variant="info" @click="taskToEdit = task"
+                        >Edit</b-button
+                      >
+                      <b-button small variant="danger" @click="deleteTask(task)"
+                        >Delete</b-button
+                      >
                     </b-list-group-item>
                   </div>
                 </transition-group>
@@ -60,7 +71,7 @@ import draggable from "vuedraggable";
 
 export default {
   components: {
-    draggable
+    draggable,
   },
 
   data: function () {
@@ -68,16 +79,16 @@ export default {
       tasks: [],
       mode: "standard",
       addNewTask: false,
-      taskToEdit: null
+      taskToEdit: null,
     };
   },
   mounted() {
     this.getTasks();
   },
   computed: {
-    modalShow: function() {
+    modalShow: function () {
       return this.addNewTask === true || this.taskToEdit !== null;
-    }
+    },
   },
   methods: {
     getTasks: function () {
@@ -98,9 +109,14 @@ export default {
           console.log(response.data);
         });
     },
-    closeTaskForm: function() {
+    closeTaskForm: function () {
       this.taskToEdit = null;
       this.addNewTask = false;
+    },
+    deleteTask: function(task) {
+      axios.delete('/api/tasks/' + task.id).then(response => {
+        console.log(response.data);
+      });
     }
   },
 };
