@@ -29,18 +29,19 @@ class TaskController extends Controller
         $request->validate([
             'title' => 'required|max:255',
             'description' => 'max:500',
-            'order_number' => 'required|numeric',
+            'order_number' => 'numeric',
             'due_at' => 'required|date|after:today',
         ]);
 
-        $task = Task::create($request->only([
+        $orderNumber = (!$request->has('order_number')) ? Task::max('order_number') + 1 : $request->input('order_number');
+        $taskData = array_merge(['order_number' => $orderNumber], $request->only([
             'title',
             'description',
-            'order_number',
             'due_at'
         ]));
+        $task = Task::create($taskData);
 
-        Task::where('order_number', '>=', $request->input('order_number'))
+        Task::where('order_number', '>=', $orderNumber)
             ->where('id', '!=', $task->id)
             ->increment('order_number');
 
