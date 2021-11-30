@@ -1,4 +1,6 @@
 @extends('layouts.app')
 @section('content')
-<p>Hi</p>
+<task-list>
+
+</task-list>
 @endsection

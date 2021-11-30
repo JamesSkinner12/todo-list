@@ -12,7 +12,7 @@ class Task extends Model
 
     protected $table = 'tasks';
     protected $guarded = [];
-
+    protected $appends = ['status'];
     public function markCompleted($at = null)
     {
         $this->update([
